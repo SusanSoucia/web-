@@ -1,0 +1,95 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Helvetica', sans-serif;
+    background-color: #f4f4f4;
+}
+
+.calculator {
+    width: 300px;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background-color: #222;
+    padding: 20px;
+}
+
+.calculator-display {
+    width: 100%;
+    height: 60px;
+    background-color: #1c1c1c;
+    color: white;
+    font-size: 2.5em;
+    text-align: right;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.calculator-keys {
+    display: grid;
+    /* 4列布局 */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 10px;
+}
+
+.calculator-keys button {
+    height: 60px;
+    border: none;
+    border-radius: 30px; /* 圆角按钮 */
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: white;
+    background-color: #505050; /* 数字按钮颜色 */
+}
+
+/* 顶部功能键 (AC, +/-, %) */
+.key-function {
+    background-color: #d4d4d2 !important;
+    color: #1c1c1c !important;
+}
+
+/* 运算符键 (+, -, ×, ÷) */
+.key-operator {
+    background-color: #ff9500 !important;
+}
+
+/* 等号键 */
+.key-equal {
+    background-color: #ff9500 !important;
+    font-weight: bold;
+}
+
+/* 0 按钮跨两列 */
+.key-zero {
+    grid-column: span 2;
+    text-align: left;
+    padding-left: 25px;
+}
+
+/* 鼠标悬停效果 */
+.calculator-keys button:hover {
+    opacity: 0.8;
+}
+
+.calculator-keys button:active {
+    filter: brightness(1.2);
+}
+
+.key-operator:active,
+.key-equal:active {
+    background-color: #f4b46c !important;
+}
+/* 键盘输入时的高亮效果 */
+.active-key {
+    /* 模拟按钮被按下的效果 */
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); 
+    filter: brightness(2.0); /* 稍微提亮 */
+}
