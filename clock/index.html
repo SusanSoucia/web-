@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线时钟</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div style="text-align:center;padding:1em 0;">
+        <h4><a style="text-decoration:none;" href="https://www.zeitverschiebung.net/cn/city/1816670">
+        <span style="color:gray;">当前本地时间在</span><br />Beijing, 中国</a></h4>
+    </div>
+    <div id="clock">
+        <span id="hours"></span>:
+        <span id="minutes"></span>:
+        <span id="seconds"></span>
+    </div>
+    <div class="clock-container">
+        <div class="clock">
+            <div class="ticks"></div>
+            <div class="numbers"></div>
+            <div class="hand hour" id="hour-hand"></div>
+            <div class="hand minute" id="minute-hand"></div>
+            <div class="hand second" id="second-hand"></div>
+
+            <div class="center-point"></div>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>

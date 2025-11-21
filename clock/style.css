@@ -1,0 +1,130 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #f5f5f5; /* 可选背景色 */
+    position: relative;
+}
+
+
+#clock {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    font-size: 48px;
+    text-align: center;
+    margin-top: 20%;
+}
+
+.clock-container {
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center;     /* 垂直居中 */
+    padding: 20px 0;         /* 可选上下间距 */
+}
+
+.clock {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    position: relative;
+
+    /* 外圆边缘金属拉丝效果 */
+    border: 12px solid transparent;
+    background-clip: padding-box; /* 让内渐变不会被边框遮挡 */
+    
+
+    /* 内部表盘渐变 */
+    background: radial-gradient(circle at center,
+    #ffffff 60%,  /* 中心亮色 */
+    #f0f0f0 100%  /* 边缘暗色 */
+);
+    /* 外阴影 + 内部阴影 */
+    box-shadow: 
+        0 0 20px rgba(0,0,0,0.25),
+        inset 0 0 10px rgba(0,0,0,0.15);
+}
+
+
+/* 指针基础样式 */
+.hand {
+    position: absolute;
+    width: 50%;
+    height: 4px;
+    background: #333;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0% 50%;
+    transform: rotate(-90deg);
+    border-radius: 2px;
+}
+
+/* 时针 */
+.hand.hour {
+    width: 35%;
+    height: 6px;
+    background: #000;
+}
+
+/* 分针 */
+.hand.minute {
+    width: 45%;
+    height: 4px;
+    background: #444;
+}
+
+/* 秒针 */
+.hand.second {
+    width: 48%;
+    height: 2px;
+    background: red;
+}
+
+/* 中心圆点 */
+.center-point {
+    width: 12px;
+    height: 12px;
+    background: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: calc(50% - 6px);
+    left: calc(50% - 6px);
+}
+
+.ticks {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.ticks div {
+    position: absolute;
+    width: 2px;
+    height: 10px;
+    background: #000;
+    top:0;
+    left:50%;
+    transform-origin: center 150px;
+}
+
+.ticks div.big {
+    width: 4px;
+    height: 20px;
+    background: #000;
+}
+
+/* ===== 数字刻度 ===== */
+.numbers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.numbers div {
+    position: absolute;
+    font-style: italic;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff0051;
+    transform: translate(-50%, -50%);
+}
