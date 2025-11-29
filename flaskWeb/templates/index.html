@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页版照片浏览器</title>
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 Inter 字体 */
+        :root { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        <h1 class="text-4xl font-extrabold text-gray-900 text-center">网页版照片浏览器</h1>
+
+        <!-- 1. 照片上传区域 -->
+        <div id="upload-section" class="bg-white p-6 shadow-xl rounded-xl border border-blue-100">
+            <h2 class="text-2xl font-semibold text-blue-700 mb-4 border-b pb-2">📸 上传照片</h2>
+            <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- 文件选择 -->
+                    <div>
+                        <label for="photo" class="block text-sm font-medium text-gray-700">照片文件</label>
+                        <input type="file" id="photo" name="photo" accept="image/jpeg" required 
+                               class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition duration-150">
+                    </div>
+                    
+                    <!-- 拍摄时间 -->
+                    <div>
+                        <label for="capture_time" class="block text-sm font-medium text-gray-700">拍摄时间 (可选，EXIF优先)</label>
+                        <input type="datetime-local" id="capture_time" name="capture_time" 
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                        <p class="text-xs text-gray-500 mt-1">格式：年-月-日 时:分 (EXIF优先)</p>
+                    </div>
+
+                    <!-- 拍摄地点 -->
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-700">拍摄地点 (可选)</label>
+                        <input type="text" id="location" name="location" placeholder="例如：北京故宫" 
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                    上传并保存元数据
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. 查询条件设置区域 -->
+        <div id="query-section" class="bg-white p-6 shadow-xl rounded-xl border border-purple-100">
+            <h2 class="text-2xl font-semibold text-purple-700 mb-4 border-b pb-2">🔍 照片查询与排序</h2>
+            <form id="query-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- 地点过滤 -->
+                    <div>
+                        <label for="location-filter" class="block text-sm font-medium text-gray-700">地点关键词</label>
+                        <input type="text" id="location-filter" placeholder="地点包含的文字"
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2">
+                    </div>
+                    
+                    <!-- 开始时间 -->
+                    <div>
+                        <label for="start-time-filter" class="block text-sm font-medium text-gray-700">拍摄开始时间</label>
+                        <input type="datetime-local" id="start-time-filter"
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2">
+                    </div>
+
+                    <!-- 结束时间 -->
+                    <div>
+                        <label for="end-time-filter" class="block text-sm font-medium text-gray-700">拍摄结束时间</label>
+                        <input type="datetime-local" id="end-time-filter"
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2">
+                    </div>
+                    
+                    <!-- 排序方式 -->
+                    <div>
+                        <label for="sort-order" class="block text-sm font-medium text-gray-700">排序方式 (按时间)</label>
+                        <select id="sort-order"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 bg-white">
+                            <option value="asc">顺序 (最早在前)</option>
+                            <option value="desc">倒序 (最新在前)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150">
+                    应用查询条件
+                </button>
+                <button type="button" id="reset-query" class="w-full py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition duration-150">
+                    重置查询
+                </button>
+            </form>
+        </div>
+        
+        <!-- 3. 照片展示区域 -->
+        <div id="photo-viewer" class="bg-white p-6 shadow-xl rounded-xl border border-green-100 space-y-4 text-center">
+            <h2 class="text-2xl font-semibold text-green-700 mb-4 border-b pb-2">🖼️ 照片展示</h2>
+            
+            <div id="photo-display-container" class="relative">
+                <img id="current-photo" src="https://placehold.co/800x600/E5E7EB/6B7280?text=上传照片开始浏览" alt="当前照片" 
+                     class="w-full max-h-[60vh] object-contain rounded-lg shadow-lg mx-auto">
+                
+                <div id="photo-metadata" class="mt-4 text-gray-600 space-y-1">
+                    <p>文件名: <span id="meta-filename" class="font-mono text-xs text-gray-500">N/A</span></p>
+                    <p>地点: <span id="meta-location" class="font-bold text-gray-800">N/A</span></p>
+                    <p>时间: <span id="meta-time" class="font-bold text-gray-800">N/A</span></p>
+                    <p class="text-sm font-medium">
+                        当前照片: <span id="current-index" class="text-green-600">0</span> / <span id="total-count">0</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- 导航按钮 -->
+            <div class="flex justify-center space-x-4 pt-4">
+                <button id="prev-btn" disabled class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:bg-gray-300 disabled:opacity-50 transition duration-150">
+                    &#9664; 上一张
+                </button>
+                <button id="next-btn" disabled class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:bg-gray-300 disabled:opacity-50 transition duration-150">
+                    下一张 &#9654;
+                </button>
+            </div>
+        </div>
+        
+        <!-- 提示消息 -->
+        <div id="message-box" class="fixed bottom-4 right-4 p-3 bg-red-500 text-white rounded-lg shadow-xl hidden"></div>
+        
+    </div>
+
+    <script>
+        // JavaScript 逻辑
+        const queryForm = document.getElementById('query-form');
+        const resetQueryBtn = document.getElementById('reset-query');
+        const currentPhoto = document.getElementById('current-photo');
+        const metaFilename = document.getElementById('meta-filename');
+        const metaLocation = document.getElementById('meta-location');
+        const metaTime = document.getElementById('meta-time');
+        const currentIndexSpan = document.getElementById('current-index');
+        const totalCountSpan = document.getElementById('total-count');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const messageBox = document.getElementById('message-box');
+        const captureTimeInput = document.getElementById('capture_time'); // 上传表单的时间输入框
+        const photoFileInput = document.getElementById('photo'); // 文件选择输入框
+
+        let photos = []; // 存储当前查询结果的照片列表
+        let currentIndex = 0; // 当前显示的照片索引
+        
+        /**
+         * 格式化 Date 对象为 datetime-local 输入框所需的 YYYY-MM-DDTHH:MM 格式。
+         * @param {Date} date 要设置的日期对象。
+         * @returns {string} 格式化后的时间字符串。
+         */
+        function formatDateToInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        /**
+         * 格式化 EXIF 时间字符串 (YYYY:MM:DD HH:MM:SS) 为 datetime-local 输入框所需的 YYYY-MM-DDTHH:MM 格式。
+         * @param {string} exifTimeString EXIF 原始时间字符串。
+         * @returns {string} 格式化后的时间字符串。
+         */
+        function formatExifTime(exifTimeString) {
+            if (!exifTimeString || exifTimeString.length < 16) return '';
+            // YYYY:MM:DD HH:MM:SS -> YYYY-MM-DDTHH:MM
+            const [datePart, timePart] = exifTimeString.split(' ');
+            const formattedDate = datePart.replace(/:/g, '-');
+            const formattedTime = timePart.substring(0, 5); // Take only HH:MM
+            return `${formattedDate}T${formattedTime}`;
+        }
+        
+        /**
+         * 尝试从 JPEG 文件的 ArrayBuffer 中提取 EXIF 拍摄时间 (DateTimeOriginal)。
+         * 注意：这是一个非常简化的实现，仅查找原始时间字符串，不进行完整的 TIFF/EXIF 解析。
+         * * @param {ArrayBuffer} arrayBuffer 文件的二进制数据。
+         * @returns {string | null} EXIF 原始时间字符串 (YYYY:MM:DD HH:MM:SS) 或 null。
+         */
+        function getExifDateTime(arrayBuffer) {
+            const maxSearchLength = Math.min(arrayBuffer.byteLength, 65536); // 限制在文件前64KB
+            // 使用 TextDecoder 扫描数据
+            const decoder = new TextDecoder('ascii');
+            
+            // 扫描缓冲区查找EXIF日期字符串格式: "YYYY:MM:DD HH:MM:SS"
+            for (let i = 0; i < maxSearchLength - 19; i += 1) {
+                // 解码一个小片段
+                // 这里使用了一个高效的启发式方法，直接在 ASCII 文本中搜索时间戳格式
+                try {
+                    const subArray = new Uint8Array(arrayBuffer, i, 20);
+                    const rawText = decoder.decode(subArray);
+                    
+                    // 正则表达式匹配 YYYY:MM:DD HH:MM:SS 格式
+                    const match = rawText.match(/(\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2})/);
+                    if (match) {
+                        return match[1];
+                    }
+                } catch(e) {
+                    // 忽略解码错误，继续搜索
+                }
+            }
+            
+            return null; // 未找到
+        }
+
+        // 显示消息提示
+        function showMessage(text, isError = false, duration = 3000) {
+            messageBox.textContent = text;
+            messageBox.className = `fixed bottom-4 right-4 p-3 rounded-lg shadow-xl ${isError ? 'bg-red-500' : 'bg-green-500'} block`;
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, duration);
+        }
+
+        /**
+         * 处理文件选择事件，尝试提取 EXIF 拍摄时间。
+         */
+        function handleFileChange(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                captureTimeInput.value = formatDateToInput(new Date()); // 如果文件被清除，则重新设置回当前时间
+                return;
+            }
+
+            // 检查文件类型是否可能是 JPEG (通常只有 JPEG 包含 EXIF)
+            if (!file.type.match('image/jpeg')) {
+                const fileDate = new Date(file.lastModified);
+                captureTimeInput.value = formatDateToInput(fileDate);
+                showMessage('非 JPEG 文件，已使用文件修改时间预填充。', false, 4000);
+                return;
+            }
+
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                let foundTime = null;
+                
+                // 1. 尝试从 EXIF 数据中提取时间
+                try {
+                    foundTime = getExifDateTime(arrayBuffer);
+                } catch (error) {
+                    // 忽略错误，回退到文件修改时间
+                    console.error("EXIF 提取尝试失败:", error);
+                }
+                
+                let timeToSet;
+                let message;
+
+                if (foundTime) {
+                    // 如果找到了 EXIF 时间
+                    timeToSet = formatExifTime(foundTime);
+                    message = '已从 EXIF 数据中提取拍摄时间并预填充。';
+                } else {
+                    // 2. EXIF 提取失败，回退到文件修改时间
+                    const fileDate = new Date(file.lastModified);
+                    timeToSet = formatDateToInput(fileDate);
+                    message = '未找到 EXIF 时间或文件格式不支持，已使用文件修改时间预填充。';
+                }
+                
+                captureTimeInput.value = timeToSet;
+                showMessage(message, false, 4000); 
+            };
+            
+            // 开始读取文件的前 64KB (通常足够包含 EXIF 数据)
+            const blob = file.slice(0, 65536);
+            reader.readAsArrayBuffer(blob);
+        }
+        
+        // 绑定文件选择事件
+        photoFileInput.addEventListener('change', handleFileChange);
+
+        // 更新照片展示
+        function updatePhotoDisplay() {
+            if (photos.length === 0) {
+                currentPhoto.src = "https://placehold.co/800x600/E5E7EB/6B7280?text=未找到匹配的照片";
+                metaFilename.textContent = 'N/A';
+                metaLocation.textContent = 'N/A';
+                metaTime.textContent = 'N/A';
+                currentIndexSpan.textContent = 0;
+                totalCountSpan.textContent = 0;
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                return;
+            }
+
+            if (currentIndex < 0 || currentIndex >= photos.length) {
+                currentIndex = 0; 
+            }
+
+            const photo = photos[currentIndex];
+            currentPhoto.src = photo.path;
+            currentPhoto.onerror = function() {
+                currentPhoto.src = "https://placehold.co/800x600/FEE2E2/EF4444?text=图片文件损坏或丢失";
+            };
+
+            metaFilename.textContent = photo.filename;
+            metaLocation.textContent = photo.location;
+            metaTime.textContent = photo.time.replace('T', ' '); 
+            
+            currentIndexSpan.textContent = currentIndex + 1;
+            totalCountSpan.textContent = photos.length;
+
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === photos.length - 1;
+        }
+
+        // 翻页逻辑
+        function navigate(direction) {
+            if (photos.length === 0) return;
+            
+            let newIndex = currentIndex + direction;
+            
+            if (newIndex >= 0 && newIndex < photos.length) {
+                currentIndex = newIndex;
+                updatePhotoDisplay();
+            }
+        }
+
+        // 绑定导航事件
+        prevBtn.addEventListener('click', () => navigate(-1));
+        nextBtn.addEventListener('click', () => navigate(1));
+
+        // 异步获取和过滤照片数据
+        async function fetchPhotos(params = {}) {
+            const url = new URL('/api/photos', window.location.origin);
+            Object.keys(params).forEach(key => {
+                if (params[key]) {
+                    url.searchParams.append(key, params[key]);
+                }
+            });
+
+            try {
+                const response = await fetch(url.toString());
+                if (!response.ok) {
+                    throw new Error(`查询照片失败, 状态码: ${response.status}`);
+                }
+                const data = await response.json();
+                photos = data;
+                currentIndex = 0; 
+                updatePhotoDisplay();
+                
+                if (data.length > 0) {
+                    showMessage(`查询成功，找到 ${data.length} 张照片。`);
+                } else {
+                    showMessage('未找到匹配的照片。请尝试放松查询条件。', true);
+                }
+
+            } catch (error) {
+                console.error('Error fetching photos:', error);
+                showMessage(`错误: ${error.message}`, true);
+                photos = [];
+                currentIndex = 0;
+                updatePhotoDisplay();
+            }
+        }
+
+        // 绑定查询表单提交事件
+        queryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const location = document.getElementById('location-filter').value;
+            const startTime = document.getElementById('start-time-filter').value;
+            const endTime = document.getElementById('end-time-filter').value;
+            const sortOrder = document.getElementById('sort-order').value;
+
+            const params = {
+                location: location,
+                start_time: startTime,
+                end_time: endTime,
+                sort_order: sortOrder
+            };
+
+            fetchPhotos(params);
+        });
+
+        // 绑定重置按钮事件
+        resetQueryBtn.addEventListener('click', () => {
+            document.getElementById('location-filter').value = '';
+            document.getElementById('start-time-filter').value = '';
+            document.getElementById('end-time-filter').value = '';
+            document.getElementById('sort-order').value = 'asc';
+            fetchPhotos(); // 重新加载所有照片
+        });
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', () => {
+            captureTimeInput.value = formatDateToInput(new Date()); // 页面加载时，默认使用当前时间
+            fetchPhotos(); // 立即加载所有照片
+        });
+        
+    </script>
+</body>
+</html>
