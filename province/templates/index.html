@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="{{url_for('static',filename='favicon.ico')}}" type="image/x-icon">
+    <title>省市级</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <select id="province">
+        <option value="">请选择省份</option>
+    </select>
+    <select id="city">
+        <option value="">请选择城市</option>
+    </select>
+
+
+<script>
+    $(document).ready(function(){
+        $.getJSON('/getProvinces',function(data){
+            console.log(data)
+            $.each(data,function(i,item){
+                console.log(item)
+                $('#province').append($('<option>',{value:item.code,
+                    text: item.name
+                }));
+            });
+        });
+
+        $('#province').change(function(){
+            var provinceCode = $(this).val();
+            $('#city').html('<option value="">选择城市</option>');
+
+            if(provinceCode){
+                $.getJSON('/getCities',{province:provinceCode},function(data){
+                    console.log(data.length)
+                    if (data.length>0){
+                    $.each(data,function(i,item){
+                        $('#city').append($('<option>',{
+                            value:item.code,
+                            text:item.name
+                        }));
+                    });
+                }else{
+                    $.getJSON('/getAreas',{province:provinceCode},function(areas){
+                        console.log(areas)
+                        $.each(areas,function(i,item){
+                            $('#city').append($('<option>',{value:item.code,
+                                text:item.name
+                            }));
+                        });
+                    });
+                }
+            });
+            }
+        });
+    });
+    </script>
+    </body>
+    </html>
